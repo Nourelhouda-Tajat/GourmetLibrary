@@ -7,6 +7,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::apiResource('categories', CategoryController::class);
+
 Route::get('/test', function () {
     return response()->json([
         "message" => "API GourmetLibrary fonctionne"
