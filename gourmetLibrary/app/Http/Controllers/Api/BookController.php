@@ -21,14 +21,22 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'title' => 'required|string',
-            'author' => 'required|string',
+            $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'published_at' => 'required|date',
-            'total_copies' => 'required|integer|min:1'
+            'total_copies' => 'required|integer|min:1',
         ]);
-        return response()->json(Book::create($data), 201);
+
+        $book = Book::create($validated);
+
+        $book->copies()->create([
+            'status' => 'available'
+        ]);
+
+        return response()->json($book->load('copies'), 201);
+
     }
 
     /**
@@ -44,9 +52,32 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function search(Request $request)
     {
-        //
+        $query = Book::with('category');
+
+        if($request->filled('title')){
+            $query->where('title', 'like', '%' . $request->title . '%');
+        }
+        if($request->filled('author')){
+            $query->where('author', 'like', '%'. $request->author . '%');
+        }
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if($request->filled('category_name')){
+            $category= Category::where('name', 'like', '%' . $request->category_name . '%');
+            if ($category) {
+                $query->where('category_id', $category->id);
+            } 
+        }
+
+        $resut=$query->get();   
+        if ($resut->isEmpty()){
+            return response()->json(['message'=>'Aucun livre trouvé'], 404);
+        }
+        return response()->json($result);
     }
 
     /**
