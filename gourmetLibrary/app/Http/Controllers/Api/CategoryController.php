@@ -55,4 +55,17 @@ class CategoryController extends Controller
         $category->delete();
         return response()->json(null, 204);
     }
+
+    public function stats()
+    {
+        // Récupère toutes les catégories et compte le nombre de livres dans chacune
+        $stats = Category::withCount('books')
+            ->orderBy('books_count', 'desc') // Les plus représentées en premier
+            ->get();
+
+        return response()->json([
+            'message' => 'Statistiques de la collection par catégorie',
+            'data' => $stats
+        ]);
+    }
 }

@@ -92,5 +92,20 @@ class BookController extends Controller
 
         return response()->json($books);
     }
+
+    public function damagedBooks()
+    {
+        $damagedStats = Book::with(['category'])
+            ->withCount(['copies as damaged_copies_count' => function ($query) {
+                $query->where('status', 'damaged');
+            }])
+            ->having('damaged_copies_count', '>', 0)
+            ->get();
+
+        return response()->json([
+            'total_damaged_items' => $damagedStats->sum('damaged_copies_count'),
+            'details' => $damagedStats
+        ]);
+    }
 }
 
