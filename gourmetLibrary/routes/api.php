@@ -4,21 +4,27 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\BookController;
+use App\Http\Controllers\Api\AuthController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+Route::apiResource('books', BookController::class)->only(['index', 'show']);
 
 Route::get('books/search', [BookController::class, 'search']);
 Route::get('books/latest', [BookController::class, 'latest']);
 Route::get('books/popular', [BookController::class, 'popular']);
 
-Route::apiResource('categories', CategoryController::class);
-Route::apiResource('books', BookController::class);
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-Route::get('/test', function () {
-    return response()->json([
-        "message" => "API GourmetLibrary fonctionne"
-    ]);
+    Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
+    Route::apiResource('books', BookController::class)->except(['index', 'show']);
+    
 });
+
