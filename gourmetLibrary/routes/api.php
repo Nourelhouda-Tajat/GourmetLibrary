@@ -9,8 +9,13 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::get('books/search', [BookController::class, 'search']);
+Route::get('books/latest', [BookController::class, 'latest']);
+Route::get('books/popular', [BookController::class, 'popular']);
+
 Route::apiResource('categories', CategoryController::class);
 Route::apiResource('books', BookController::class);
+
 
 Route::get('/test', function () {
     return response()->json([

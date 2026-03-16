@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Book;
+use App\Models\Category;
 
 class BookController extends Controller
 {
@@ -49,9 +50,7 @@ class BookController extends Controller
     
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    
     public function search(Request $request)
     {
         $query = Book::with('category');
@@ -67,24 +66,31 @@ class BookController extends Controller
         }
 
         if($request->filled('category_name')){
-            $category= Category::where('name', 'like', '%' . $request->category_name . '%');
+            $category= Category::where('name', 'like', '%' . $request->category_name . '%')->first();
             if ($category) {
                 $query->where('category_id', $category->id);
             } 
         }
 
-        $resut=$query->get();   
-        if ($resut->isEmpty()){
+        $result=$query->get();   
+        if ($result->isEmpty()){
             return response()->json(['message'=>'Aucun livre trouvé'], 404);
         }
         return response()->json($result);
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    
+    public function latest()
     {
-        //
+        $books = Book::with('category')->latest()->take(5)->get();
+    
+        return response()->json($books);
+    }
+
+    public function popular()
+    {
+        $books = Book::with('category')->withCount('borrows')->orderBy('borrows_count', 'desc')->take(5)->get();
+
+        return response()->json($books);
     }
 }
+
